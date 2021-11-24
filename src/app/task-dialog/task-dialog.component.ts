@@ -4,12 +4,12 @@ import { Task } from '../task/task'
 
 export interface TaskDialogData{
   task: Partial<Task>;
-  enableDelecte: boolean;
+  enableDelete: boolean;
 }
 
 export interface TaskDialogResult{
   task: Task;
-  delecte?: boolean;
+  delete?: boolean;
 }
 
 @Component({
