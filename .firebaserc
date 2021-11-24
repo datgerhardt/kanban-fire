@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "kanbanfire-fa3af": {
+      "hosting": {
+        "kanban-fire": [
+          "kanbanfire-fa3af"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "kanbanfire-fa3af"
+  }
+}
