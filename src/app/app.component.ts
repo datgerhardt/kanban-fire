@@ -23,7 +23,6 @@ export class AppComponent {
 
   todo = this.store.collection('todo').valueChanges({idField:'id'}) as Observable<Task[]>;
   inProgress = this.store.collection('inProgress').valueChanges({idField: 'id'}) as Observable<Task[]>;
-  // done =  this.store.collection('done').valueChanges({idField: 'id'}) as Observable<Task[]>;
   done =  getObservable(this.store.collection('done'));
 
   constructor(private dialog: MatDialog, private store: AngularFirestore){}
