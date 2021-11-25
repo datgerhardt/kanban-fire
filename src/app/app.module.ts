@@ -39,6 +39,7 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
     FormsModule,
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
+
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule,
   ],
