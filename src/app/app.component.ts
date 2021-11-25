@@ -1,8 +1,11 @@
-import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, transferArrayItem } from '@angular/cdk/drag-drop';
 import { MatDialog } from '@angular/material/dialog';
 import { Component } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
 import { Task } from './task/task';
 import { TaskDialogComponent, TaskDialogResult } from './task-dialog/task-dialog.component';
+import { Observable } from 'rxjs';
 
 
 @Component({ 
@@ -13,21 +16,11 @@ import { TaskDialogComponent, TaskDialogResult } from './task-dialog/task-dialog
 export class AppComponent {
   title = 'kanban-fire';
 
-  todo: Task[] = [
-    {
-      title: 'Buy milk',
-      description: 'Go to the store and buy milk'
-    },
-    {
-      title: 'Create a Kanban app',
-      description: 'Using Firebase and Angular create a Kanban app!'
-    }
-   ];
+  todo = this.store.collection('todo').valueChanges({idField:'id'}) as Observable<Task[]>;
+  inProgress = this.store.collection('inProgress').valueChanges({idField: 'id'}) as Observable<Task[]>;
+  done =  this.store.collection('done').valueChanges({idField: 'id'}) as Observable<Task[]>;
 
-  inProgress: Task[] = [];
-  done: Task[] = [];
-
-  constructor(private dialog: MatDialog){}
+  constructor(private dialog: MatDialog, private store: AngularFirestore){}
 
   editTask(list: 'todo'|'inProgress'|'done', task: Task): void {
     const dialogRef = this.dialog.open(TaskDialogComponent, { 
@@ -40,23 +33,29 @@ export class AppComponent {
       if(!result){
         return;
       }
-      const dataList = this[list];
-      const taskIndex = dataList.indexOf(task) 
       if (result.delete){
-        dataList.splice(taskIndex, 1)
+        this.store.collection(list).doc(task.id).delete()
       }else{
-        dataList[taskIndex] = task;
+        this.store.collection(list).doc(task.id).update(task)
       }
     })
   }
 
-  drop(event:CdkDragDrop<Task[]>): void {
+  drop(event:CdkDragDrop<Task[]|null>): void {
     if (event.previousContainer === event.container){
       return;
     }
-    if (!event.container.data||!event.previousContainer.data){
+    if (!event.previousContainer.data || !event.container.data) {
       return;
     }
+    const item = event.previousContainer.data[event.previousIndex]
+    this.store.firestore.runTransaction(()=>{
+      const promise = Promise.all([
+        this.store.collection(event.previousContainer.id).doc(item.id).delete(),
+        this.store.collection(event.container.id).add(item)
+      ]);
+      return promise;
+    });
     transferArrayItem(
       event.previousContainer.data,
       event.container.data,
@@ -76,9 +75,7 @@ export class AppComponent {
       if(!result){
         return;
       }
-      this.todo.push(result.task)
+      this.store.collection('todo').add(result.task)
     })
-  }
-  
-    
+  }    
 }
